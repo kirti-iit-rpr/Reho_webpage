@@ -1,0 +1,2082 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reho — Reach Home, Always</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black: #0a0908;
+  --card: #0f0e0c;
+  --orange: #e06000;
+  --orange-dim: rgba(224,96,0,0.12);
+  --orange-line: rgba(224,96,0,0.25);
+  --white: #f5f3f0;
+  --grey: #b5b3ae;
+  --dim: #706e68;
+  --border: #1a1814;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--black);
+  color: var(--white);
+  font-family: 'DM Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* ── NOISE OVERLAY ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1000;
+  opacity: 0.4;
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  padding: 24px 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.4s, background 0.4s, padding 0.4s;
+}
+nav.scrolled {
+  background: rgba(14,12,10,0.96);
+  backdrop-filter: blur(20px);
+  border-color: var(--border);
+  padding: 18px 48px;
+}
+.nav-logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1.6rem;
+  letter-spacing: -0.03em;
+  text-decoration: none;
+}
+.nav-logo .re { color: var(--white); }
+.nav-logo .ho { color: var(--orange); }
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 36px;
+  list-style: none;
+}
+.nav-links a {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #d0cec8;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.nav-links a:hover { color: var(--white); }
+
+.nav-cta {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--black) !important;
+  background: var(--orange);
+  border: 1px solid var(--orange);
+  padding: 9px 22px;
+  border-radius: 100px;
+  font-weight: 500;
+  transition: background 0.2s, transform 0.2s, box-shadow 0.2s !important;
+}
+.nav-cta:hover {
+  background: #ff7000;
+  box-shadow: 0 6px 24px rgba(224,96,0,0.45);
+  transform: translateY(-1px);
+}
+
+/* ── HERO ── */
+#hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 110px 48px 40px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-glow {
+  position: absolute;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(224,96,0,0.12) 0%, transparent 70%);
+  top: -100px; right: -100px;
+  pointer-events: none;
+}
+.hero-glow-2 {
+  position: absolute;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(224,96,0,0.06) 0%, transparent 70%);
+  bottom: 0; left: 20%;
+  pointer-events: none;
+}
+
+.hero-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  color: var(--orange);
+  text-transform: uppercase;
+  margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.1s forwards;
+}
+.hero-label::before {
+  content: '';
+  width: 24px; height: 1px;
+  background: var(--orange);
+}
+
+.hero-headline {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: clamp(2rem, 4.5vw, 4rem);
+  line-height: 0.92;
+  letter-spacing: -0.03em;
+  max-width: 900px;
+  margin-bottom: 24px;
+  opacity: 0;
+  animation: fadeUp 0.9s 0.2s forwards;
+}
+.hero-headline .accent { color: var(--orange); }
+.hero-headline .dim { color: var(--dim); }
+
+.hero-sub {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 300;
+  font-size: 1.05rem;
+  color: var(--grey);
+  line-height: 1.7;
+  max-width: 440px;
+  margin-bottom: 32px;
+  opacity: 0;
+  animation: fadeUp 0.9s 0.35s forwards;
+}
+
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  opacity: 0;
+  animation: fadeUp 0.9s 0.5s forwards;
+}
+
+.btn-primary {
+  background: var(--orange);
+  color: var(--black);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 16px 32px;
+  border-radius: 100px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(224,96,0,0.35);
+}
+
+.btn-ghost {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--grey);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: color 0.2s;
+}
+.btn-ghost:hover { color: var(--white); }
+.btn-ghost::after { content: '→'; transition: transform 0.2s; }
+.btn-ghost:hover::after { transform: translateX(4px); }
+
+.hero-stats {
+  position: absolute;
+  bottom: 48px; right: 48px;
+  display: flex;
+  gap: 48px;
+  opacity: 0;
+  animation: fadeUp 0.9s 0.7s forwards;
+}
+.stat-item { text-align: right; }
+.stat-num {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 1.8rem;
+  color: var(--white);
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.stat-num span { color: var(--orange); }
+.stat-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.5rem;
+  color: var(--dim);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+/* ── SCROLL INDICATOR ── */
+.scroll-hint {
+  position: absolute;
+  bottom: 48px; left: 48px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.5rem;
+  color: var(--dim);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0;
+  animation: fadeUp 1s 1s forwards;
+}
+.scroll-line {
+  width: 1px; height: 40px;
+  background: linear-gradient(to bottom, var(--orange), transparent);
+  animation: scrollPulse 2s infinite;
+}
+
+/* ── SECTION SHARED ── */
+section {
+  padding: 120px 48px;
+  position: relative;
+}
+
+.section-eyebrow {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.3em;
+  color: var(--orange);
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.section-eyebrow::before {
+  content: '';
+  width: 20px; height: 1px;
+  background: var(--orange);
+}
+
+.section-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: clamp(2rem, 4vw, 3.4rem);
+  line-height: 1.0;
+  letter-spacing: -0.03em;
+  margin-bottom: 16px;
+}
+.section-title .accent { color: var(--orange); }
+
+.section-body {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 300;
+  font-size: 1rem;
+  color: var(--grey);
+  line-height: 1.75;
+  max-width: 500px;
+}
+
+/* ── DIVIDER ── */
+.divider {
+  width: 100%;
+  height: 1px;
+  background: var(--border);
+  margin: 0 48px;
+  width: calc(100% - 96px);
+}
+
+/* ── ABOUT / MISSION ── */
+#about {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+}
+
+.about-visual {
+  position: relative;
+  height: 480px;
+}
+
+.about-card {
+  position: absolute;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+}
+
+.about-card-main {
+  width: 280px;
+  top: 40px; left: 0;
+  border-color: var(--orange-line);
+}
+
+.about-card-float {
+  width: 200px;
+  bottom: 40px; right: 0;
+  background: rgba(224,96,0,0.06);
+  border-color: var(--orange-line);
+}
+
+.about-card-icon {
+  width: 40px; height: 40px;
+  background: var(--orange-dim);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  font-size: 18px;
+}
+
+.about-card-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--white);
+  margin-bottom: 8px;
+  letter-spacing: -0.01em;
+}
+
+.about-card-text {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.72rem;
+  color: var(--grey);
+  line-height: 1.6;
+  font-weight: 300;
+}
+
+.about-card-big-num {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 2.8rem;
+  color: var(--orange);
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.about-card-big-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.42rem;
+  color: var(--grey);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-top: 6px;
+}
+
+.about-content {}
+
+.about-tagline {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 0.18em;
+  color: var(--orange);
+  margin-bottom: 8px;
+}
+
+.about-text {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1rem;
+  color: var(--grey);
+  line-height: 1.8;
+  font-weight: 300;
+  margin-bottom: 40px;
+}
+
+.values-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 40px;
+}
+
+.value-item {
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  transition: border-color 0.3s;
+}
+.value-item:hover { border-color: var(--orange-line); }
+
+.value-icon {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.value-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: var(--white);
+  margin-bottom: 5px;
+}
+
+.value-desc {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.65rem;
+  color: var(--grey);
+  line-height: 1.5;
+  font-weight: 300;
+}
+
+/* ── HOW IT WORKS ── */
+#how {
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.how-header {
+  max-width: 600px;
+  margin-bottom: 72px;
+}
+
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+}
+
+.step {
+  padding: 40px 32px;
+  border-right: 1px solid var(--border);
+  position: relative;
+  transition: background 0.3s;
+}
+.step:last-child { border-right: none; }
+.step:hover { background: rgba(224,96,0,0.03); }
+
+.step-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 3.5rem;
+  color: var(--dim);
+  line-height: 1;
+  margin-bottom: 20px;
+  transition: color 0.3s;
+}
+.step:hover .step-num { color: var(--orange); opacity: 0.4; }
+
+.step-icon {
+  width: 44px; height: 44px;
+  background: var(--orange-dim);
+  border: 1px solid var(--orange-line);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  margin-bottom: 20px;
+}
+
+.step-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--white);
+  margin-bottom: 10px;
+  letter-spacing: -0.01em;
+}
+
+.step-desc {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  color: var(--grey);
+  line-height: 1.65;
+  font-weight: 300;
+}
+
+.step-arrow {
+  position: absolute;
+  top: 40px; right: -14px;
+  width: 28px; height: 28px;
+  background: var(--black);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--orange);
+  z-index: 2;
+}
+.step:last-child .step-arrow { display: none; }
+
+/* ── SMART TAG PRODUCT SECTION ── */
+#smart-tag {
+  overflow: hidden;
+}
+
+.tag-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 72px;
+}
+
+.tag-section-left { max-width: 560px; }
+
+.tag-section-right {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  color: var(--dim);
+  letter-spacing: 0.15em;
+  text-align: right;
+  line-height: 1.8;
+}
+
+/* Tag card visual */
+.tag-showcase {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 1fr;
+  gap: 48px;
+  align-items: center;
+  margin-bottom: 72px;
+}
+
+.tag-card {
+  width: 180px;
+  height: 296px;
+  border-radius: 14px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.7);
+  position: relative;
+  transition: transform 0.4s, box-shadow 0.4s;
+  cursor: default;
+}
+.tag-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  border: 1.5px solid rgba(224,96,0,0.3);
+  pointer-events: none;
+}
+.tag-card:hover {
+  transform: translateY(-8px) rotate(1deg);
+  box-shadow: 0 40px 80px rgba(0,0,0,0.8), 0 0 40px rgba(224,96,0,0.1);
+}
+
+.tag-stripe { height: 4px; background: var(--orange); flex-shrink: 0; }
+.tag-hole-wrap { display: flex; justify-content: center; padding: 10px 0 6px; }
+.tag-hole { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid #2a2620; }
+
+.tag-front-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 14px 14px;
+}
+
+.tag-brand {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 0.85rem;
+  letter-spacing: -0.02em;
+}
+.tag-brand .re { color: var(--white); }
+.tag-brand .ho { color: var(--orange); }
+
+.tag-qr-box {
+  width: 110px; height: 110px;
+  background: #0d0c0a;
+  border-radius: 8px;
+  border: 1px solid rgba(224,96,0,0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qr-mini {
+  display: grid;
+  grid-template-columns: repeat(7,1fr);
+  gap: 1.5px;
+  width: 70px; height: 70px;
+}
+
+.qr-cell {
+  border-radius: 1.5px;
+  background: #e06000;
+}
+.qr-cell.off { background: transparent; }
+
+.tag-scan-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  color: var(--white);
+  text-align: center;
+  line-height: 1.1;
+}
+.tag-scan-label em { color: var(--orange); font-style: normal; display: block; }
+
+.tag-tagline {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.28rem;
+  letter-spacing: 0.2em;
+  color: var(--orange);
+  opacity: 0.55;
+  text-align: center;
+}
+
+/* back card */
+.tag-back-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 8px 14px 14px;
+}
+
+.tag-back-hero {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.4rem;
+  letter-spacing: 0.03em;
+  line-height: 0.95;
+  color: var(--white);
+}
+.tag-back-hero em { color: var(--orange); font-style: normal; display: block; }
+
+.tag-back-sub {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 300;
+  font-size: 0.44rem;
+  color: var(--grey);
+  line-height: 1.6;
+}
+
+.tag-back-usp-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.25rem;
+  color: var(--orange);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.tag-back-usp {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  font-size: 0.5rem;
+  color: var(--white);
+  line-height: 1.4;
+}
+
+.tag-back-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  border-top: 1px solid var(--border);
+  padding-top: 6px;
+}
+
+.tag-back-brand {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 0.55rem;
+  letter-spacing: -0.02em;
+}
+
+.tag-back-social {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.24rem;
+  color: var(--dim);
+  letter-spacing: 0.1em;
+}
+
+/* Center showcase info */
+.tag-center-info {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.tag-feature {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.tag-feature-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--orange);
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+
+.tag-feature-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--white);
+  margin-bottom: 4px;
+  letter-spacing: -0.01em;
+}
+
+.tag-feature-desc {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.72rem;
+  color: var(--grey);
+  line-height: 1.6;
+  font-weight: 300;
+}
+
+/* Use cases strip */
+.use-cases {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 2px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.use-case {
+  padding: 28px 24px;
+  background: var(--card);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-right: 1px solid var(--border);
+  transition: background 0.3s;
+  cursor: default;
+}
+.use-case:last-child { border-right: none; }
+.use-case:hover { background: rgba(224,96,0,0.04); }
+
+.use-case-icon { font-size: 24px; }
+
+.use-case-name {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.78rem;
+  color: var(--white);
+  letter-spacing: -0.01em;
+}
+
+.use-case-desc {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.62rem;
+  color: var(--grey);
+  line-height: 1.5;
+  font-weight: 300;
+}
+
+/* ── PRIVACY SECTION ── */
+#privacy {
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.privacy-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+}
+
+.privacy-promise {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: clamp(1.8rem, 3vw, 2.8rem);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  margin-bottom: 24px;
+}
+.privacy-promise .accent { color: var(--orange); }
+
+.privacy-desc {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1rem;
+  color: var(--grey);
+  line-height: 1.8;
+  font-weight: 300;
+  margin-bottom: 40px;
+}
+
+.privacy-points {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.privacy-point {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--border);
+}
+.privacy-point:first-child { border-top: 1px solid var(--border); }
+
+.privacy-point-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.5rem;
+  color: var(--orange);
+  letter-spacing: 0.2em;
+  margin-top: 3px;
+  flex-shrink: 0;
+  width: 28px;
+}
+
+.privacy-point-content {}
+
+.privacy-point-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--white);
+  margin-bottom: 4px;
+}
+
+.privacy-point-desc {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.72rem;
+  color: var(--grey);
+  line-height: 1.6;
+  font-weight: 300;
+}
+
+.privacy-visual {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.privacy-badge {
+  background: rgba(224,96,0,0.06);
+  border: 1px solid var(--orange-line);
+  border-radius: 16px;
+  padding: 28px 32px;
+}
+
+.privacy-badge-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.45rem;
+  color: var(--orange);
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.privacy-badge-text {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1.4rem;
+  color: var(--white);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.privacy-badge-sub {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.72rem;
+  color: var(--grey);
+  margin-top: 8px;
+  font-weight: 300;
+}
+
+.privacy-stat-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.privacy-stat {
+  background: var(--black);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.privacy-stat-num {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1.6rem;
+  color: var(--white);
+  letter-spacing: -0.03em;
+}
+.privacy-stat-num span { color: var(--orange); }
+
+.privacy-stat-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.42rem;
+  color: var(--dim);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+/* ── TESTIMONIALS / SOCIAL PROOF ── */
+#proof {
+  overflow: hidden;
+}
+
+.proof-header { margin-bottom: 60px; }
+
+.proof-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.proof-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 32px;
+  transition: border-color 0.3s, transform 0.3s;
+}
+.proof-card:hover {
+  border-color: var(--orange-line);
+  transform: translateY(-4px);
+}
+
+.proof-quote {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem;
+  color: var(--white);
+  line-height: 1.7;
+  font-weight: 300;
+  margin-bottom: 24px;
+  font-style: italic;
+}
+.proof-quote em {
+  color: var(--orange);
+  font-style: normal;
+  font-weight: 500;
+}
+
+.proof-author {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.proof-avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--orange-dim);
+  border: 1px solid var(--orange-line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 0.7rem;
+  color: var(--orange);
+}
+
+.proof-name {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.75rem;
+  color: var(--white);
+}
+
+.proof-role {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.45rem;
+  color: var(--dim);
+  letter-spacing: 0.12em;
+  margin-top: 2px;
+}
+
+/* ── CTA SECTION ── */
+#cta {
+  text-align: center;
+  padding: 140px 48px;
+  position: relative;
+  overflow: hidden;
+}
+
+.cta-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, rgba(224,96,0,0.08) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+.cta-eyebrow {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  color: var(--orange);
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+
+.cta-headline {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: clamp(2.4rem, 5vw, 4.5rem);
+  line-height: 1.0;
+  letter-spacing: -0.03em;
+  margin-bottom: 24px;
+}
+.cta-headline .accent { color: var(--orange); }
+
+.cta-sub {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 300;
+  font-size: 1rem;
+  color: var(--grey);
+  max-width: 440px;
+  margin: 0 auto 48px;
+  line-height: 1.7;
+}
+
+.cta-actions {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.cta-mono {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.52rem;
+  color: var(--dim);
+  letter-spacing: 0.2em;
+  margin-top: 32px;
+}
+
+/* ── FOOTER ── */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 48px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 40px;
+}
+
+.footer-brand {}
+
+.footer-logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1.2rem;
+  letter-spacing: -0.03em;
+  margin-bottom: 12px;
+}
+.footer-logo .re { color: var(--white); }
+.footer-logo .ho { color: var(--orange); }
+
+.footer-tagline {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.48rem;
+  color: var(--dim);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+.footer-social {
+  display: flex;
+  gap: 12px;
+}
+
+.social-link {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.52rem;
+  color: var(--grey);
+  text-decoration: none;
+  letter-spacing: 0.1em;
+  transition: color 0.2s;
+}
+.social-link:hover { color: var(--orange); }
+
+.footer-col-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.5rem;
+  color: var(--dim);
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+.footer-links {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.footer-links a {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  color: var(--grey);
+  text-decoration: none;
+  font-weight: 300;
+  transition: color 0.2s;
+}
+.footer-links a:hover { color: var(--white); }
+
+.footer-bottom {
+  border-top: 1px solid var(--border);
+  padding: 20px 48px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footer-copy {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.46rem;
+  color: var(--dim);
+  letter-spacing: 0.1em;
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(28px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scrollPulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+.reveal-delay-4 { transition-delay: 0.4s; }
+
+/* ── TICKER ── */
+.ticker-wrap {
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 0;
+  overflow: hidden;
+  background: var(--card);
+}
+
+.ticker-track {
+  display: flex;
+  gap: 0;
+  width: max-content;
+  animation: ticker 28s linear infinite;
+}
+
+.ticker-item {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.2em;
+  color: var(--dim);
+  padding: 0 32px;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.ticker-item em {
+  font-style: normal;
+  color: var(--orange);
+}
+
+.ticker-dot {
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--orange);
+  opacity: 0.4;
+}
+
+@keyframes ticker {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+/* ── CONTRAST BLOCK ── */
+.contrast-block {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.contrast-col {
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.contrast-old {
+  background: #0a0908;
+}
+
+.contrast-new {
+  background: rgba(224,96,0,0.06);
+  border-left: 1px solid rgba(224,96,0,0.2);
+}
+
+.contrast-label {
+  font-family: "DM Mono", monospace;
+  font-size: 0.48rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: #777;
+}
+
+.contrast-label-new {
+  font-family: "Syne", sans-serif;
+  font-weight: 800;
+  font-size: 0.9rem;
+  letter-spacing: -0.02em;
+}
+
+.contrast-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.contrast-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-family: "DM Sans", sans-serif;
+  font-size: 0.75rem;
+  color: var(--grey);
+  font-weight: 300;
+  line-height: 1.5;
+}
+
+.contrast-x {
+  color: #777;
+  font-size: 0.7rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+  font-weight: 600;
+}
+
+.contrast-check {
+  color: var(--orange);
+  font-size: 0.7rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+  font-weight: 600;
+}
+
+.contrast-new .contrast-row {
+  color: #aaa;
+}
+
+/* ── NAV ENHANCEMENTS ── */
+.nav-logo .ho {
+  text-shadow: 0 0 28px rgba(224,96,0,0.5);
+}
+nav.scrolled {
+  border-color: rgba(224,96,0,0.15) !important;
+}
+.nav-links a:hover {
+  color: #fff !important;
+}
+/* Make non-scrolled nav text pop too */
+nav:not(.scrolled) .nav-links a {
+  color: rgba(255,255,255,0.75);
+}
+
+/* ── LUGGAGE SPOTLIGHT ── */
+.luggage-spotlight { margin-top: 64px; }
+
+.luggage-spotlight-eyebrow { margin-bottom: 28px; }
+
+.luggage-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 0.8fr;
+  gap: 16px;
+}
+
+.luggage-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: border-color 0.3s;
+}
+.luggage-card:hover { border-color: var(--orange-line); }
+
+.luggage-card-icon { font-size: 26px; }
+
+.luggage-card-title {
+  font-family: "Syne", sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--white);
+  letter-spacing: -0.01em;
+}
+
+.luggage-card-desc {
+  font-family: "DM Sans", sans-serif;
+  font-size: 0.74rem;
+  color: var(--grey);
+  line-height: 1.65;
+  font-weight: 300;
+}
+
+/* Price card */
+.luggage-card-price {
+  background: rgba(224,96,0,0.07);
+  border-color: rgba(224,96,0,0.3);
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.luggage-price-label {
+  font-family: "DM Mono", monospace;
+  font-size: 0.48rem;
+  color: var(--orange);
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+}
+
+.luggage-price {
+  font-family: "Syne", sans-serif;
+  font-weight: 800;
+  font-size: 2.8rem;
+  color: var(--white);
+  letter-spacing: -0.04em;
+  line-height: 1;
+  margin: 4px 0 6px;
+}
+
+.luggage-price-sub {
+  font-family: "DM Sans", sans-serif;
+  font-size: 0.68rem;
+  color: var(--grey);
+  line-height: 1.5;
+  font-weight: 300;
+  margin-bottom: 16px;
+}
+
+.luggage-price-cta {
+  display: inline-block;
+  background: var(--orange);
+  color: var(--black);
+  font-family: "DM Mono", monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 10px 20px;
+  border-radius: 100px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: transform 0.2s, box-shadow 0.2s;
+  width: fit-content;
+}
+.luggage-price-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(224,96,0,0.4);
+}
+
+/* ── COMING SOON ── */
+.coming-soon-block {
+  margin-top: 64px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.coming-soon-inner {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 0;
+}
+
+.coming-soon-left {
+  padding: 52px 48px;
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 20px;
+  background: rgba(224,96,0,0.03);
+}
+
+.coming-soon-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(224,96,0,0.1);
+  border: 1px solid rgba(224,96,0,0.25);
+  border-radius: 100px;
+  padding: 5px 14px;
+  font-family: "DM Mono", monospace;
+  font-size: 0.52rem;
+  color: var(--orange);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  width: fit-content;
+}
+.coming-soon-pill::before {
+  content: "";
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--orange);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.7); }
+}
+
+.coming-soon-title {
+  font-family: "Syne", sans-serif;
+  font-weight: 800;
+  font-size: 2rem;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: var(--white);
+}
+
+.coming-soon-desc {
+  font-family: "DM Sans", sans-serif;
+  font-size: 0.82rem;
+  color: var(--grey);
+  line-height: 1.75;
+  font-weight: 300;
+}
+
+.coming-soon-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
+
+.cs-card {
+  padding: 40px 36px;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: background 0.3s;
+}
+.cs-card:nth-child(even) { border-right: none; }
+.cs-card:hover { background: rgba(224,96,0,0.03); }
+
+.cs-card-icon { font-size: 28px; filter: grayscale(0.3); }
+
+.cs-card-name {
+  font-family: "Syne", sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--white);
+  letter-spacing: -0.01em;
+}
+
+.cs-card-desc {
+  font-family: "DM Sans", sans-serif;
+  font-size: 0.74rem;
+  color: var(--grey);
+  line-height: 1.65;
+  font-weight: 300;
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="navbar">
+  <a href="#" class="nav-logo"><span class="re">Re</span><span class="ho">ho</span></a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#how">How it works</a></li>
+    <li><a href="#smart-tag">Smart Tags</a></li>
+    <li><a href="#privacy">Privacy</a></li>
+    <li><a href="#cta" class="nav-cta">Get yours</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-glow-2"></div>
+
+  <div class="hero-label">Smart ownership. Zero exposure.</div>
+
+  <h1 class="hero-headline">
+    Your things<br>
+    find their way<br>
+    <span class="accent">back home.</span>
+  </h1>
+
+  <p class="hero-sub">
+    Reho makes every belonging smart. When something goes missing, it finds its way back to you safely; without ever exposing your number.
+  </p>
+
+  <div class="hero-actions">
+    <a href="#smart-tag" class="btn-primary">Explore smart tags</a>
+    <a href="#how" class="btn-ghost">See how it works</a>
+  </div>
+
+  <div class="scroll-hint">
+    <div class="scroll-line"></div>
+  </div>
+
+</section>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker-track">
+    <div class="ticker-item">Reach Home <span class="ticker-dot"></span></div>
+    <div class="ticker-item"><em>Always</em> <span class="ticker-dot"></span></div>
+    <div class="ticker-item">Smart Tags <span class="ticker-dot"></span></div>
+    <div class="ticker-item">Zero Exposure <span class="ticker-dot"></span></div>
+    <div class="ticker-item">Privacy First <span class="ticker-dot"></span></div>
+    <div class="ticker-item"><em>reho.co.in</em> <span class="ticker-dot"></span></div>
+    <div class="ticker-item">Found? Scan Front <span class="ticker-dot"></span></div>
+    <div class="ticker-item">Your Number Stays Hidden <span class="ticker-dot"></span></div>
+    <!-- duplicate for seamless loop -->
+    <div class="ticker-item">Reach Home <span class="ticker-dot"></span></div>
+    <div class="ticker-item"><em>Always</em> <span class="ticker-dot"></span></div>
+    <div class="ticker-item">Smart Tags <span class="ticker-dot"></span></div>
+    <div class="ticker-item">Zero Exposure <span class="ticker-dot"></span></div>
+    <div class="ticker-item">Privacy First <span class="ticker-dot"></span></div>
+    <div class="ticker-item"><em>reho.co.in</em> <span class="ticker-dot"></span></div>
+    <div class="ticker-item">Found? Scan Front <span class="ticker-dot"></span></div>
+    <div class="ticker-item">Your Number Stays Hidden <span class="ticker-dot"></span></div>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="about-visual reveal">
+    <div class="about-card about-card-main">
+      <div class="about-card-icon">🔒</div>
+      <div class="about-card-title">No contact details printed</div>
+      <div class="about-card-text">Your phone number, email, and address are never on the tag. Only a QR that routes safely through Reho.</div>
+    </div>
+  </div>
+  </div>
+
+  <div class="about-content">
+    <div class="section-eyebrow reveal">Our mission</div>
+    <h2 class="section-title reveal reveal-delay-1">Built for the age<br>of <span class="accent">smart choices.</span></h2>
+    <div class="about-tagline reveal reveal-delay-2">Reach Home, Always</div>
+    <p class="about-text reveal reveal-delay-2">
+      We started Reho because losing something you own shouldn't mean losing your privacy too. Traditional tags print your number for anyone to see. We built a smarter way; finders reach you through Reho, never directly.
+    </p>
+
+    <div class="values-grid reveal reveal-delay-3">
+      <div class="value-item">
+        <div class="value-icon">🛡️</div>
+        <div class="value-title">Privacy-first</div>
+        <div class="value-desc">Your data never lives on the tag itself.</div>
+      </div>
+      <div class="value-item">
+        <div class="value-icon">⚡</div>
+        <div class="value-title">Instant reach</div>
+        <div class="value-desc">One scan connects finder to owner in seconds.</div>
+      </div>
+      <div class="value-item">
+        <div class="value-icon">🇮🇳</div>
+        <div class="value-title">Made for India</div>
+        <div class="value-desc">Built in India, for every kind of go-getter.</div>
+      </div>
+      <div class="value-item">
+        <div class="value-icon">♾️</div>
+        <div class="value-title">One tag, forever</div>
+        <div class="value-desc">Attach once. Works forever across all your bags.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="how-header">
+    <div class="section-eyebrow reveal">The flow</div>
+    <h2 class="section-title reveal reveal-delay-1">How <span class="accent">Reho</span> works</h2>
+    <p class="section-body reveal reveal-delay-2">From lost to found in four simple steps. No app required for the finder.</p>
+  </div>
+
+  <div class="steps-grid reveal">
+    <div class="step">
+      <div class="step-num">01</div>
+      <div class="step-icon">🏷️</div>
+      <div class="step-title">Attach your tag</div>
+      <div class="step-desc">Scan the QR on your new Reho tag to register it. Add a contact, set a verification question, done.</div>
+      <div class="step-arrow">→</div>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <div class="step-icon">🔍</div>
+      <div class="step-title">Finder scans front</div>
+      <div class="step-desc">Someone finds your belonging. They scan the QR on the front; just a phone camera, no app needed.</div>
+      <div class="step-arrow">→</div>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <div class="step-icon">✅</div>
+      <div class="step-title">Verified, not exposed</div>
+      <div class="step-desc">Reho asks the finder a verification question you set. Three attempts. Device blocked on failure.</div>
+      <div class="step-arrow">→</div>
+    </div>
+    <div class="step">
+      <div class="step-num">04</div>
+      <div class="step-icon">📞</div>
+      <div class="step-title">Reach the owner</div>
+      <div class="step-desc">Finder gets a contact page: Call, WhatsApp, or message via Reho. Your number stays hidden throughout.</div>
+    </div>
+  </div>
+</section>
+
+<!-- SMART TAG PRODUCT SECTION -->
+<section id="smart-tag">
+  <div class="tag-section-header">
+    <div class="tag-section-left">
+      <div class="section-eyebrow reveal">Product</div>
+      <h2 class="section-title reveal reveal-delay-1">The <span class="accent">Smart Tag.</span><br>For everything you carry.</h2>
+      <p class="section-body reveal reveal-delay-2" style="margin-top:16px;">Not just for luggage. The Reho Smart Tag works on anything worth keeping; your daily laptop bag, your kid's school backpack, your gym kit.</p>
+    </div>
+
+  </div>
+
+  <div class="tag-showcase reveal">
+    <!-- Front tag -->
+    <div style="display:flex;flex-direction:column;align-items:center;gap:16px;">
+      <div class="tag-card">
+        <div class="tag-stripe"></div>
+        <div class="tag-hole-wrap"><div class="tag-hole"></div></div>
+        <div class="tag-front-body">
+          <div class="tag-brand"><span class="re">Re</span><span class="ho">ho</span></div>
+          <div class="tag-qr-box">
+            <!-- Simplified QR grid representation -->
+            <svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Finder TL -->
+              <rect x="2" y="2" width="22" height="22" rx="4" stroke="#e06000" stroke-width="3" fill="none"/>
+              <rect x="8" y="8" width="10" height="10" rx="2.5" fill="#e06000"/>
+              <!-- Finder TR -->
+              <rect x="48" y="2" width="22" height="22" rx="4" stroke="#e06000" stroke-width="3" fill="none"/>
+              <rect x="54" y="8" width="10" height="10" rx="2.5" fill="#e06000"/>
+              <!-- Finder BL -->
+              <rect x="2" y="48" width="22" height="22" rx="4" stroke="#e06000" stroke-width="3" fill="none"/>
+              <rect x="8" y="54" width="10" height="10" rx="2.5" fill="#e06000"/>
+              <!-- Data modules (random-ish pattern) -->
+              <rect x="28" y="2" width="5" height="8" rx="2.5" fill="#e06000"/>
+              <rect x="36" y="2" width="5" height="5" rx="2.5" fill="#e06000"/>
+              <rect x="28" y="14" width="5" height="10" rx="2.5" fill="#e06000"/>
+              <rect x="36" y="10" width="5" height="8" rx="2.5" fill="#e06000"/>
+              <rect x="44" y="4" width="3" height="5" rx="1.5" fill="#e06000"/>
+              <rect x="2" y="28" width="8" height="5" rx="2.5" fill="#e06000"/>
+              <rect x="14" y="28" width="5" height="10" rx="2.5" fill="#e06000"/>
+              <rect x="22" y="28" width="5" height="5" rx="2.5" fill="#e06000"/>
+              <rect x="28" y="28" width="8" height="8" rx="2.5" fill="#e06000"/>
+              <rect x="40" y="28" width="5" height="14" rx="2.5" fill="#e06000"/>
+              <rect x="48" y="28" width="5" height="8" rx="2.5" fill="#e06000"/>
+              <rect x="56" y="28" width="5" height="5" rx="2.5" fill="#e06000"/>
+              <rect x="64" y="28" width="5" height="10" rx="2.5" fill="#e06000"/>
+              <rect x="28" y="40" width="5" height="8" rx="2.5" fill="#e06000"/>
+              <rect x="36" y="48" width="8" height="5" rx="2.5" fill="#e06000"/>
+              <rect x="48" y="44" width="5" height="10" rx="2.5" fill="#e06000"/>
+              <rect x="56" y="40" width="8" height="5" rx="2.5" fill="#e06000"/>
+              <rect x="56" y="50" width="5" height="8" rx="2.5" fill="#e06000"/>
+              <rect x="64" y="56" width="5" height="5" rx="2.5" fill="#e06000"/>
+              <rect x="36" y="58" width="8" height="5" rx="2.5" fill="#e06000"/>
+            </svg>
+          </div>
+          <div>
+            <div class="tag-scan-label">Scan to<br>reach <em>owner</em></div>
+            <div class="tag-tagline">Reach home · Always</div>
+          </div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.26rem;color:rgba(255,255,255,0.15);letter-spacing:0.15em;text-align:center;">REHO.CO.IN · TAG R001</div>
+        </div>
+      </div>
+      <div style="font-family:'DM Mono',monospace;font-size:0.48rem;color:var(--dim);letter-spacing:0.2em;text-transform:uppercase;">Front</div>
+    </div>
+
+    <!-- Center features -->
+    <div class="tag-center-info">
+      <div class="tag-feature reveal">
+        <div class="tag-feature-dot"></div>
+        <div>
+          <div class="tag-feature-title">Designed to match your swag</div>
+          <div class="tag-feature-desc">Sleek, minimal, and built to look good on any bag. A tag people actually notice — for the right reasons.</div>
+        </div>
+      </div>
+      <div class="tag-feature reveal reveal-delay-1">
+        <div class="tag-feature-dot"></div>
+        <div>
+          <div class="tag-feature-title">No app needed to find you</div>
+          <div class="tag-feature-desc">Finders just use their phone camera. No downloads, no sign-ups required on their end.</div>
+        </div>
+      </div>
+      <div class="tag-feature reveal reveal-delay-2">
+        <div class="tag-feature-dot"></div>
+        <div>
+          <div class="tag-feature-title">Finder verification</div>
+          <div class="tag-feature-desc">Anyone can scan, but only someone who knows your bag can reach you. Built-in security.</div>
+        </div>
+      </div>
+      <div class="tag-feature reveal reveal-delay-3">
+        <div class="tag-feature-dot"></div>
+        <div>
+          <div class="tag-feature-title">No contact details exposed. Ever.</div>
+          <div class="tag-feature-desc">Your number is never shown on the tag or to unverified finders. Privacy by design.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Back tag -->
+    <div style="display:flex;flex-direction:column;align-items:center;gap:16px;">
+      <div class="tag-card">
+        <div class="tag-stripe"></div>
+        <div class="tag-hole-wrap"><div class="tag-hole"></div></div>
+        <div class="tag-back-body">
+          <div>
+            <div style="display:inline-flex;align-items:center;gap:5px;background:rgba(224,96,0,0.08);border:1px solid rgba(224,96,0,0.2);border-radius:100px;padding:3px 8px;margin-bottom:10px;">
+              <div style="width:5px;height:5px;border-radius:50%;background:#e06000;"></div>
+              <span style="font-family:'DM Mono',monospace;font-size:0.28rem;color:#e06000;letter-spacing:0.15em;text-transform:uppercase;">Smart Tag</span>
+            </div>
+            <div class="tag-back-hero">Found me?<br><em>Scan front.</em></div>
+          </div>
+          <div class="tag-back-sub">This bag has a smart tag.<br>Scan the QR on the front<br>to reach the owner.</div>
+          <div>
+            <div class="tag-back-usp-label">Privacy</div>
+            <div class="tag-back-usp">No contact details<br>exposed. Ever.</div>
+          </div>
+          <div class="tag-back-footer">
+            <div class="tag-back-brand"><span style="color:rgba(255,255,255,0.6);">Re</span><span style="color:#e06000;">ho</span></div>
+            <div class="tag-back-social">ig @reho.co.in · reho.co.in</div>
+          </div>
+        </div>
+      </div>
+      <div style="font-family:'DM Mono',monospace;font-size:0.48rem;color:var(--dim);letter-spacing:0.2em;text-transform:uppercase;">Back</div>
+    </div>
+  </div>
+
+  <!-- Luggage spotlight -->
+  <div class="reveal luggage-spotlight">
+    <div class="luggage-spotlight-eyebrow">
+      <div class="section-eyebrow" style="margin-bottom:0;">For luggage specifically</div>
+    </div>
+    <div class="luggage-grid">
+      <div class="luggage-card">
+        <div class="luggage-card-icon">🧳</div>
+        <div class="luggage-card-title">Checked baggage</div>
+        <div class="luggage-card-desc">Airport belts, airline holds, transfer hubs. The moment your bag leaves your hand, Reho keeps it tethered to you.</div>
+      </div>
+      <div class="luggage-card">
+        <div class="luggage-card-icon">🚂</div>
+        <div class="luggage-card-title">Train &amp; bus travel</div>
+        <div class="luggage-card-desc">Left a bag on the Rajdhani or a state bus? Anyone who finds it can reach you through Reho, not your number.</div>
+      </div>
+      <div class="luggage-card">
+        <div class="luggage-card-icon">🏨</div>
+        <div class="luggage-card-title">Hotel &amp; transit stays</div>
+        <div class="luggage-card-desc">Bags left at concierge, misplaced in hotel lobbies. One scan brings them back safely.</div>
+      </div>
+      <div class="luggage-card luggage-card-price">
+        <div class="luggage-price-label">Luggage tag</div>
+        <div class="luggage-price">₹499</div>
+        <div class="luggage-price-sub">One tag. One belonging. Always found.</div>
+        <a href="#cta" class="luggage-price-cta">Order now</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Everything else -->
+  <div class="reveal" style="margin-top:48px;">
+    <div class="section-eyebrow" style="margin-bottom:24px;">Works on everything you carry</div>
+    <div class="use-cases">
+      <div class="use-case">
+        <div class="use-case-icon">💻</div>
+        <div class="use-case-name">Laptop bags</div>
+        <div class="use-case-desc">Your work machine is your lifeline. Tag it so it finds its way back.</div>
+      </div>
+      <div class="use-case">
+        <div class="use-case-icon">🎒</div>
+        <div class="use-case-name">Kids' bags</div>
+        <div class="use-case-desc">School bags, daycare bags. Safe contact for teachers and helpers.</div>
+      </div>
+      <div class="use-case">
+        <div class="use-case-icon">🎽</div>
+        <div class="use-case-name">Gym &amp; sports</div>
+        <div class="use-case-desc">Locker rooms, stadiums, training sessions. Tag your gear.</div>
+      </div>
+      <div class="use-case">
+        <div class="use-case-icon">📷</div>
+        <div class="use-case-name">Camera bags</div>
+        <div class="use-case-desc">Protect expensive equipment. One scan to reach the owner safely.</div>
+      </div>
+      <div class="use-case">
+        <div class="use-case-icon">🎨</div>
+        <div class="use-case-name">Art &amp; instrument cases</div>
+        <div class="use-case-desc">Irreplaceable gear deserves a smarter safety net.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Coming soon: pet tags & keychains -->
+  <div class="reveal coming-soon-block">
+    <div class="coming-soon-inner">
+      <div class="coming-soon-left">
+        <div class="coming-soon-pill">Coming soon</div>
+        <h3 class="coming-soon-title">Same Reho.<br><span class="accent">New forms.</span></h3>
+        <p class="coming-soon-desc">The core stays the same: scan to reach the owner, zero contact details exposed, verified finders only. The shape changes to fit what you're tagging.</p>
+      </div>
+      <div class="coming-soon-cards">
+        <div class="cs-card">
+          <div class="cs-card-icon">🐾</div>
+          <div class="cs-card-name">Pet tags</div>
+          <div class="cs-card-desc">A Reho tag for your dog or cat's collar. If they wander, whoever finds them reaches you through Reho; not your number.</div>
+        </div>
+        <div class="cs-card">
+          <div class="cs-card-icon">🔑</div>
+          <div class="cs-card-name">Keychains</div>
+          <div class="cs-card-desc">Dropped keys are one of the most common things people lose. A Reho keychain brings them back without exposing who you are.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRIVACY SECTION -->
+<section id="privacy">
+  <div class="privacy-layout">
+    <div>
+      <div class="section-eyebrow reveal">Our promise</div>
+      <h2 class="privacy-promise reveal reveal-delay-1">No contact details<br>exposed. <span class="accent">Ever.</span></h2>
+      <p class="privacy-desc reveal reveal-delay-2">
+        We built Reho because printing your number on anything felt wrong. A bag, a backpack, a tag; anyone who picks it up can see it, call you, bother you. We fixed that.
+      </p>
+      <div class="privacy-points reveal reveal-delay-3">
+        <div class="privacy-point">
+          <div class="privacy-point-num">01</div>
+          <div class="privacy-point-content">
+            <div class="privacy-point-title">Nothing printed on the tag</div>
+            <div class="privacy-point-desc">No name. No number. No address. Just a QR code that routes through Reho.</div>
+          </div>
+        </div>
+        <div class="privacy-point">
+          <div class="privacy-point-num">02</div>
+          <div class="privacy-point-content">
+            <div class="privacy-point-title">Finders verify before reaching you</div>
+            <div class="privacy-point-desc">Only someone who knows your bag passes through. Strangers don't get your number.</div>
+          </div>
+        </div>
+        <div class="privacy-point">
+          <div class="privacy-point-num">03</div>
+          <div class="privacy-point-content">
+            <div class="privacy-point-title">You control everything</div>
+            <div class="privacy-point-desc">Your details live behind Reho. You decide what finders can see; nothing is ever printed on the tag.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="privacy-visual reveal">
+      <div class="privacy-badge">
+        <div class="privacy-badge-label">Reho Privacy Promise</div>
+        <div class="privacy-badge-text">No contact details<br>exposed. Ever.</div>
+        <div class="privacy-badge-sub">Your number stays hidden from finders, forever. That's the Reho guarantee.</div>
+      </div>
+      <div class="contrast-block">
+        <div class="contrast-col contrast-old">
+          <div class="contrast-label">Old way</div>
+          <div class="contrast-rows">
+            <div class="contrast-row"><span class="contrast-x">✕</span><span>Your number printed for anyone to read</span></div>
+            <div class="contrast-row"><span class="contrast-x">✕</span><span>Strangers can call you directly</span></div>
+            <div class="contrast-row"><span class="contrast-x">✕</span><span>No way to verify who’s contacting you</span></div>
+            <div class="contrast-row"><span class="contrast-x">✕</span><span>Lost bag often means lost privacy too</span></div>
+          </div>
+        </div>
+        <div class="contrast-col contrast-new">
+          <div class="contrast-label-new"><span style="color:#fff;">Re</span><span style="color:#e06000;">ho</span></div>
+          <div class="contrast-rows">
+            <div class="contrast-row"><span class="contrast-check">✓</span><span>Zero contact details on the tag</span></div>
+            <div class="contrast-row"><span class="contrast-check">✓</span><span>Finder routes through Reho, not directly</span></div>
+            <div class="contrast-row"><span class="contrast-check">✓</span><span>Verification before anyone reaches you</span></div>
+            <div class="contrast-row"><span class="contrast-check">✓</span><span>Your bag comes back. Your privacy stays.</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SOCIAL PROOF -->
+<section id="proof">
+  <div class="proof-header">
+    <div class="section-eyebrow reveal">Early users</div>
+    <h2 class="section-title reveal reveal-delay-1">People who <span class="accent">get it.</span></h2>
+  </div>
+
+  <div class="proof-grid">
+    <div class="proof-card reveal">
+      <p class="proof-quote">"Lost my laptop bag at Delhi airport. Someone scanned the tag, passed verification, and called me within 20 minutes. <em>Got it back the same day.</em>"</p>
+      <div class="proof-author">
+        <div class="proof-avatar">AK</div>
+        <div>
+          <div class="proof-name">Arjun K.</div>
+          <div class="proof-role">Product designer · Delhi</div>
+        </div>
+      </div>
+    </div>
+    <div class="proof-card reveal reveal-delay-1">
+      <p class="proof-quote">"I tag my kids' school bags. The <em>privacy thing matters</em>; I don't want my number printed anywhere a stranger can read it."</p>
+      <div class="proof-author">
+        <div class="proof-avatar">PR</div>
+        <div>
+          <div class="proof-name">Priya R.</div>
+          <div class="proof-role">Parent · Bengaluru</div>
+        </div>
+      </div>
+    </div>
+    <div class="proof-card reveal reveal-delay-2">
+      <p class="proof-quote">"Super clean tag design. The QR on black background looks premium. I've had people ask me about it at the airport before it even helped me."</p>
+      <div class="proof-author">
+        <div class="proof-avatar">SM</div>
+        <div>
+          <div class="proof-name">Siddharth M.</div>
+          <div class="proof-role">Frequent flyer · Mumbai</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta">
+  <div class="cta-glow"></div>
+  <div class="cta-eyebrow reveal">Ready?</div>
+  <h2 class="cta-headline reveal reveal-delay-1">
+    Tag it once.<br>
+    <span class="accent">Reach home,</span><br>
+    always.
+  </h2>
+  <p class="cta-sub reveal reveal-delay-2">Get your Reho Smart Tag and never worry about a lost bag again. Your number stays private. Your bag finds its way home.</p>
+  <div class="cta-actions reveal reveal-delay-3">
+    <a href="#" class="btn-primary">Order your tag</a>
+    <a href="#smart-tag" class="btn-ghost">See the product</a>
+  </div>
+  <div class="cta-mono reveal reveal-delay-4">reho.co.in &nbsp;·&nbsp; ig @reho.co.in</div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-brand">
+    <div class="footer-logo"><span class="re">Re</span><span class="ho">ho</span></div>
+    <div class="footer-tagline">Reach Home · Always</div>
+    <div class="footer-social">
+      <a href="#" class="social-link">@reho.co.in</a>
+      <a href="#" class="social-link">reho.co.in</a>
+    </div>
+  </div>
+
+  <div>
+    <div class="footer-col-title">Product</div>
+    <ul class="footer-links">
+      <li><a href="#">Smart Tags</a></li>
+      <li><a href="#">How it works</a></li>
+      <li><a href="#">Pricing</a></li>
+      <li><a href="#">Order</a></li>
+    </ul>
+  </div>
+
+  <div>
+    <div class="footer-col-title">Company</div>
+    <ul class="footer-links">
+      <li><a href="#">About Reho</a></li>
+      <li><a href="#">Our mission</a></li>
+      <li><a href="#">Contact us</a></li>
+    </ul>
+  </div>
+
+  <div>
+    <div class="footer-col-title">Legal</div>
+    <ul class="footer-links">
+      <li><a href="#">Privacy policy</a></li>
+      <li><a href="#">Terms of use</a></li>
+      <li><a href="#">For finders</a></li>
+    </ul>
+  </div>
+</footer>
+
+<div class="footer-bottom">
+  <div class="footer-copy">© 2025 Reho. All rights reserved.</div>
+  <div class="footer-copy">Made in India 🇮🇳</div>
+</div>
+
+<script>
+// Nav scroll
+const navbar = document.getElementById('navbar');
+window.addEventListener('scroll', () => {
+  navbar.classList.toggle('scrolled', window.scrollY > 40);
+});
+
+// Reveal on scroll
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      observer.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.12 });
+
+reveals.forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
